@@ -74,6 +74,7 @@ completed a write of 171507845844 bytes after 274 seconds.
 block-size 12800000, concurrency 256
 completed a write of 171507845844 bytes after 273 seconds.
 completed a write of 171507845844 bytes after 266 seconds.
+completed a write of 171507845844 bytes after 268 seconds.
 ```
 
 ## Running a Test
@@ -89,14 +90,12 @@ STORAGE_KEY=e...==
 Run either the "perf" file (macos), "perf.exe" file (win64), or compile the "perf.go" for your platform. Use the following parameters:
 
 ```
-./perf --in /largefile.segy --out /Users/plasne/Downloads/largefile.segy --file-len 171507845844 --block-size 12800000 --concurrency 256
+./perf --in /largefile.segy --out /Users/plasne/Downloads/largefile.segy --block-size 12800000 --concurrency 256
 ```
 
 ```
-perf.exe --in /largefile.segy --out f:\largefile.segy --file-len 171507845844 --block-size 12800000 --concurrency 256
+perf.exe --in /largefile.segy --out f:\largefile.segy --block-size 12800000 --concurrency 256
 ```
-
-**NOTE**: It is dumb that I require entering the number of bytes for the file length, I could read that, I just haven't got around to writing that yet.
 
 ## Concurrency
 

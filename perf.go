@@ -75,6 +75,45 @@ func generateSignature(method, path string, headers map[string]string) string {
 	return "SharedKey " + storageAccount + ":" + sig
 }
 
+func getSize(in string) int64 {
+	log.Println("determine the file size...")
+
+	// define the headers
+	headers := make(map[string]string)
+	headers["x-ms-version"] = "2019-07-07"
+	utc := time.Now().UTC().Format(time.RFC1123)
+	gmt := strings.Replace(utc, "UTC", "GMT", -1)
+	headers["x-ms-date"] = gmt
+
+	// fetch the data from blob
+	client := &http.Client{}
+	req, err := http.NewRequest("HEAD", "https://"+storageAccount+".blob.core.windows.net/"+containerName+in, nil)
+	if err != nil {
+		log.Fatalln("http.NewRequest: ", err)
+	}
+	for key, val := range headers {
+		req.Header.Add(key, val)
+	}
+	sig := generateSignature("HEAD", in, headers)
+	req.Header.Add("Authorization", sig)
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatalln("client.Do: ", err)
+	}
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		log.Fatalln("client.Do: ", res.StatusCode, res.Status)
+	}
+
+	// parse the header
+	len, err := strconv.ParseInt(res.Header.Get("Content-Length"), 10, 64)
+	if err != nil {
+		log.Fatalln("ParseInt: ", err)
+	}
+	log.Printf("file size determined to be %d bytes.", len)
+
+	return len
+}
+
 func download(in string, out *os.File, off, len int64) int64 {
 	log.Printf("read from %d to %d...\n", off, off+len-1)
 
@@ -125,7 +164,6 @@ func download(in string, out *os.File, off, len int64) int64 {
 }
 
 func main() {
-	start := time.Now()
 
 	// load env
 	godotenv.Load() // use of .env is optional
@@ -142,18 +180,17 @@ func main() {
 	flag.StringVar(&out, "out", "", "specify the name of the local file to write to")
 	var concurrency int
 	flag.IntVar(&concurrency, "concurrency", 32, "specify how many reads to run at a time")
-	var blockSize, fileLen int64
+	var blockSize int64
 	flag.Int64Var(&blockSize, "block-size", 96*1000*1000, "specify the number of bytes to fetch in each block") // 96MiB
-	flag.Int64Var(&fileLen, "file-len", 0, "specify the file length in bytes (remove this)")
 	flag.Parse()
 	if in == "" || out == "" {
 		log.Fatalln("You must specify both 'in' and 'out' as command line parameters.")
 	}
-	if fileLen < 1 {
-		log.Fatalf("You must specify the file length.")
-	}
 	// --in "/Level-of-Effort.pdf"
 	// --out "/Users/plasne/Documents/copydownperf/temp/Level-of-Effort.pdf"
+
+	// determine the size of file
+	fileLen := getSize(in)
 
 	// open the output file
 	outfile, err := os.Create(out)
@@ -161,6 +198,9 @@ func main() {
 		log.Fatalln("Create: ", err)
 	}
 	defer outfile.Close()
+
+	// start the timer
+	start := time.Now()
 
 	// downloading, enforcing concurrency
 	var offset, total int64 = 0, 0

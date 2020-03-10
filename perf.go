@@ -179,15 +179,13 @@ func main() {
 	flag.StringVar(&in, "in", "", "specify the URL to pull data from")
 	flag.StringVar(&out, "out", "", "specify the name of the local file to write to")
 	var concurrency int
-	flag.IntVar(&concurrency, "concurrency", 32, "specify how many reads to run at a time")
+	flag.IntVar(&concurrency, "concurrency", 384, "specify how many reads to run at a time")
 	var blockSize int64
-	flag.Int64Var(&blockSize, "block-size", 96*1000*1000, "specify the number of bytes to fetch in each block") // 96MiB
+	flag.Int64Var(&blockSize, "block-size", 12800000, "specify the number of bytes to fetch in each block") // 12.8 MiB
 	flag.Parse()
 	if in == "" || out == "" {
 		log.Fatalln("You must specify both 'in' and 'out' as command line parameters.")
 	}
-	// --in "/Level-of-Effort.pdf"
-	// --out "/Users/plasne/Documents/copydownperf/temp/Level-of-Effort.pdf"
 
 	// determine the size of file
 	fileLen := getSize(in)

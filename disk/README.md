@@ -2,6 +2,9 @@ I was asked to run a disk-only test as well to see how concurrency/parallelism h
 
 ## Results
 
+-   Azure N48s_v3 VM (disk: 80k IOPS, 800 MiB/s throughput)
+-   8x P30s striped (Storage Spaces, Simple, 8 Columns)
+
 It seems for disk-only writing, a concurrency of 2 (which could be async IO or threads) is sufficient to saturate the disk.
 
 ```

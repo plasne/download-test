@@ -9,11 +9,13 @@ import (
 	"time"
 )
 
-func write(out *os.File, off, len int64) int64 {
+func write(out *os.File, off, len int64, useRandomData bool) int64 {
 
-	// fill a buffer with random data
+	// fill a buffer with random data (or leave empty)
 	buf := make([]byte, len, len)
-	rand.Read(buf)
+	if useRandomData {
+		rand.Read(buf)
+	}
 
 	// write to the file position
 	// NOTE: WriteAt is safe for parallelism https://golang.org/pkg/io/#WriterAt
@@ -37,6 +39,8 @@ func main() {
 	flag.Int64Var(&blocksize, "block-size", 12800000, "specify the number of bytes to fetch in each block") // 12.8 MiB
 	var numblocks int64
 	flag.Int64Var(&numblocks, "num-blocks", 13400, "number of blocks to write")
+	var useRandomData bool
+	flag.BoolVar(&useRandomData, "use-random-data", true, "if true (which is default) then the buffer will fill with random data")
 	flag.Parse()
 	if out == "" {
 		log.Fatalln("You must specify 'out' as command line parameters.")
@@ -60,7 +64,7 @@ func main() {
 		go func(i int64) {
 			defer func() { <-sem }()
 			off := i * blocksize
-			write(outfile, off, blocksize)
+			write(outfile, off, blocksize, useRandomData)
 			complete := int(math.Round(float64(i) / float64(numblocks) * float64(100)))
 			log.Printf("%d percent complete...\n", complete)
 		}(i)
@@ -72,6 +76,10 @@ func main() {
 	// log the completion
 	log.Println("100 percent complete.")
 	elapsed := int64(math.Round(time.Since(start).Seconds()))
-	log.Printf("completed a write of %d bytes after %d seconds for %d MiB/s.\n", blocksize*numblocks, elapsed, blocksize*numblocks/1000/1000/elapsed)
+	if elapsed > 0 {
+		log.Printf("completed a write of %d bytes after %d seconds for %d MiB/s.\n", blocksize*numblocks, elapsed, blocksize*numblocks/1000/1000/elapsed)
+	} else {
+		log.Printf("completed a write of %d bytes after %d seconds.\n", blocksize*numblocks, elapsed)
+	}
 
 }

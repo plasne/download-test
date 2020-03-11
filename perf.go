@@ -219,7 +219,7 @@ func main() {
 
 	// log the completion
 	log.Println("100 percent complete.")
-	elapsed := int(math.Round(time.Since(start).Seconds()))
-	log.Printf("completed a write of %d bytes after %d seconds.\n", fileLen, elapsed)
+	elapsed := int64(math.Round(time.Since(start).Seconds()))
+	log.Printf("completed a write of %d bytes after %d seconds for %d MiB/s.\n", fileLen, elapsed, fileLen/1000/1000/elapsed)
 
 }

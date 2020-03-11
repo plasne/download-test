@@ -89,9 +89,20 @@ completed a write of 171519770624 bytes after 196 seconds for 875 MiB/s.
 
 ## 256 KB blocks x 654,296 blocks
 
+Smaller block sizes do not perform as well, but a concurrency of 8 did help.
+
 ```
 concurrency 2
 completed a write of 171519770624 bytes after 305 seconds for 562 MiB/s.
+
+concurrency 4
+completed a write of 171519770624 bytes after 277 seconds for 619 MiB/s.
+
+concurrency 8
+completed a write of 171519770624 bytes after 244 seconds for 702 MiB/s.
+
+concurrency 32
+completed a write of 171519770624 bytes after 356 seconds for 481 MiB/s.
 ```
 
 ## Empty Buffer - 12.8 MiB blocks x 13,400 blocks

@@ -4,14 +4,16 @@ import (
 	"flag"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 	"time"
 )
 
 func write(out *os.File, off, len int64) int64 {
 
-	// fill a buffer
+	// fill a buffer with random data
 	buf := make([]byte, len, len)
+	rand.Read(buf)
 
 	// write to the file position
 	// NOTE: WriteAt is safe for parallelism https://golang.org/pkg/io/#WriterAt

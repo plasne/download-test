@@ -13,7 +13,7 @@ It is certainly possible that you could tweak better performance, but for the no
 
 ## Config A Results
 
--   Azure D64s_v3 VM (disk: 80k IOPS, 800 MiB/s throughput)
+-   Azure D64s_v3 VM (disk: 80k IOPS, 800 MB/s throughput)
 -   8x P30s striped (Storage Spaces, Simple, 8 Columns)
 -   Accelerated Networking
 
@@ -60,7 +60,7 @@ completed a write of 171507845844 bytes after 1248 seconds.
 
 ## Config B Results
 
--   Azure N48s_v3 VM (disk: 80k IOPS, 800 MiB/s throughput)
+-   Azure N48s_v3 VM (disk: 80k IOPS, 800 MB/s throughput)
 -   8x P30s striped (Storage Spaces, Simple, 8 Columns)
 
 **Best Time: 660 MiB/s**

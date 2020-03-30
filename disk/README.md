@@ -123,5 +123,3 @@ completed a write of 171520000000 bytes after 126 seconds for 1361 MiB/s.
 concurrency 256
 completed a write of 171520000000 bytes after 124 seconds for 1383 MiB/s.
 ```
-
-.\disk.exe --concurrency 2 --block-size 1048576 --num-blocks 163574 --use-random-data=true --out f:\test01

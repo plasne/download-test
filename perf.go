@@ -114,7 +114,7 @@ func getSize(in string) int64 {
 	return len
 }
 
-func download(in string, out *os.File, off, len int64) int64 {
+func download(in string, out *os.File, off, len int64, write bool) int64 {
 	log.Printf("read from %d to %d...\n", off, off+len-1)
 
 	// define the headers
@@ -154,11 +154,13 @@ func download(in string, out *os.File, off, len int64) int64 {
 
 	// write to the file position
 	// NOTE: WriteAt is safe for parallelism https://golang.org/pkg/io/#WriterAt
-	_, err = out.WriteAt(buffer.Bytes(), off)
-	if err != nil {
-		log.Fatalln("WriteAt: ", err)
+	if write {
+		_, err = out.WriteAt(buffer.Bytes(), off)
+		if err != nil {
+			log.Fatalln("WriteAt: ", err)
+		}
+		log.Printf("wrote at %d.\n", off)
 	}
-	log.Printf("wrote at %d.\n", off)
 
 	return n
 }
@@ -182,20 +184,28 @@ func main() {
 	flag.IntVar(&concurrency, "concurrency", 384, "specify how many reads to run at a time")
 	var blockSize int64
 	flag.Int64Var(&blockSize, "block-size", 12800000, "specify the number of bytes to fetch in each block") // 12.8 MiB
+	var write bool
+	flag.BoolVar(&write, "write", true, "if true (default) data will be written to disk")
 	flag.Parse()
-	if in == "" || out == "" {
-		log.Fatalln("You must specify both 'in' and 'out' as command line parameters.")
+	if in == "" {
+		log.Fatalln("You must specify 'in' as command line parameters.")
+	}
+	if out == "" && write {
+		log.Fatalln("You must specify 'out' as command line parameters if write is 'true'.")
 	}
 
 	// determine the size of file
 	fileLen := getSize(in)
 
 	// open the output file
-	outfile, err := os.Create(out)
-	if err != nil {
-		log.Fatalln("Create: ", err)
+	var outfile *os.File
+	if write {
+		outfile, err := os.Create(out)
+		if err != nil {
+			log.Fatalln("Create: ", err)
+		}
+		defer outfile.Close()
 	}
-	defer outfile.Close()
 
 	// start the timer
 	start := time.Now()
@@ -207,7 +217,7 @@ func main() {
 		sem <- true
 		go func(off int64) {
 			defer func() { <-sem }()
-			total += download(in, outfile, off, blockSize)
+			total += download(in, outfile, off, blockSize, write)
 			complete := int(math.Round(float64(total) / float64(fileLen) * 100))
 			log.Printf("%d percent complete...\n", complete)
 		}(offset)

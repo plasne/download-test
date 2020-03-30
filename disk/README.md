@@ -123,3 +123,21 @@ completed a write of 171520000000 bytes after 126 seconds for 1361 MiB/s.
 concurrency 256
 completed a write of 171520000000 bytes after 124 seconds for 1383 MiB/s.
 ```
+
+## Windows
+
+Per the source code at https://golang.org/src/internal/poll/fd_windows.go, the Windows emulation of pwrite involves locking the file descriptor, seeking to the appropriate location, writing the data, and the seeking back to the original location. That is a very undesirable behavior compared with the native \*nix implementation of pwrite.
+
+Fortunately, it is still quite possible to get maximum write performance on Azure Blob Storage even with this implementation.
+
+Here is a relevant snippet...
+
+```go
+fd.l.Lock()
+defer fd.l.Unlock()
+curoffset, e := syscall.Seek(fd.Sysfd, 0, io.SeekCurrent)
+if e != nil {
+    return 0, e
+}
+defer syscall.Seek(fd.Sysfd, curoffset, io.SeekStart)
+```
